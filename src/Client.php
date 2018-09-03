@@ -28,9 +28,9 @@ class Client
      * @param string $storagePath
      * @param bool $staging
      */
-    public function __construct($emailList, $storagePath, $staging = FALSE)
+    public function __construct($emailList, $storagePath, $staging = FALSE, $accountStoragePath = null)
     {
-        self::$runtime = new Runtime($emailList, $storagePath, $staging);
+        self::$runtime = new Runtime($emailList, $storagePath, $staging, $accountStoragePath);
 
         self::$runtime->init();
     }
