@@ -299,6 +299,11 @@ class OrderService
         return array_merge($body, ['orderUrl' => $orderUrl]);
     }
 
+    public function isReady()
+    {
+        return $this->status == 'ready';
+    }
+
     /**
      * Get pending challenges info
      * @return ChallengeService[]
@@ -375,7 +380,27 @@ class OrderService
             throw new OrderException("There are still some authorizations that are not valid.");
         }
 
-        if ($this->status == 'pending')
+        /**
+         * "ready" needs to be supported because of:
+         * 
+         *   - "ready": The server agrees that the requirements have been
+         *     fulfilled, and is awaiting finalization.  Submit a finalization
+         *     request.
+         * 
+         *   - There are several reasons that
+         *     the referenced authorizations may already be valid:
+         *  
+         *     o  The client completed the authorization as part of a previous order
+         *  
+         *     o  The client previously pre-authorized the identifier (see
+         *         Section 7.4.1)
+         *  
+         *     o  The server granted the client authorization based on an external
+         *         account
+         * 
+         *   from https://tools.ietf.org/html/draft-ietf-acme-acme-14#section-7.1.6.
+         */
+        if ($this->status == 'pending' || $this->status == 'ready')
         {
             if (!$csr)
             {
