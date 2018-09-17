@@ -34,6 +34,12 @@ class Runtime
     public $storagePath;
 
     /**
+     * Storage path for account public/private key pair and so on
+     * @var string
+     */
+    public $accountStoragePath;
+
+    /**
      * If staging status
      * @var bool
      */
@@ -75,11 +81,17 @@ class Runtime
      * @param string $storagePath
      * @param bool $staging
      */
-    public function __construct($emailList, $storagePath, $staging = FALSE)
+    public function __construct($emailList, $storagePath, $staging = FALSE, $accountStoragePath = null)
     {
         $this->emailList = array_filter(array_unique($emailList));
         $this->storagePath = rtrim(trim($storagePath), '/\\');
         $this->staging = boolval($staging);
+
+        if ($accountStoragePath) {
+            $this->accountStoragePath = rtrim(trim($accountStoragePath), '/\\');
+        } else {
+            $this->accountStoragePath = $this->storagePath.'/account';
+        }
 
         sort($this->emailList);
     }
@@ -93,7 +105,7 @@ class Runtime
 
         $this->endpoint = new EndpointService();
         $this->nonce = new NonceService();
-        $this->account = new AccountService($this->storagePath.'/account');
+        $this->account = new AccountService($this->accountStoragePath);
 
         $this->account->init();
     }

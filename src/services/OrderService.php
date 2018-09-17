@@ -299,6 +299,11 @@ class OrderService
         return array_merge($body, ['orderUrl' => $orderUrl]);
     }
 
+    public function isReady()
+    {
+        return $this->status == 'ready';
+    }
+
     /**
      * Get pending challenges info
      * @return ChallengeService[]
@@ -361,20 +366,41 @@ class OrderService
     /**
      * Get certificate file path info after verifying
      * @param string|null $csr
+     * @param int $timeout
      * @return array
      * @throws OrderException
      * @throws \stonemax\acme2\exceptions\AccountException
      * @throws \stonemax\acme2\exceptions\NonceException
      * @throws \stonemax\acme2\exceptions\RequestException
      */
-    public function getCertificateFile($csr = NULL)
+    public function getCertificateFile($csr = NULL, $timeout = 180)
     {
         if ($this->isAllAuthorizationValid() === FALSE)
         {
             throw new OrderException("There are still some authorizations that are not valid.");
         }
 
-        if ($this->status == 'pending')
+        /**
+         * "ready" needs to be supported because of:
+         * 
+         *   - "ready": The server agrees that the requirements have been
+         *     fulfilled, and is awaiting finalization.  Submit a finalization
+         *     request.
+         * 
+         *   - There are several reasons that
+         *     the referenced authorizations may already be valid:
+         *  
+         *     o  The client completed the authorization as part of a previous order
+         *  
+         *     o  The client previously pre-authorized the identifier (see
+         *         Section 7.4.1)
+         *  
+         *     o  The server granted the client authorization based on an external
+         *         account
+         * 
+         *   from https://tools.ietf.org/html/draft-ietf-acme-acme-14#section-7.1.6.
+         */
+        if ($this->status == 'pending' || $this->status == 'ready')
         {
             if (!$csr)
             {
@@ -384,11 +410,16 @@ class OrderService
             $this->finalizeOrder(CommonHelper::getCSRWithoutComment($csr));
         }
 
-        while ($this->status != 'valid')
+        $endTime = time() + $timeout;
+        while (time() <= $endTime && $this->status != 'valid')
         {
             sleep(3);
-
             $this->getOrder();
+        }
+
+        if ($this->status != 'valid')
+        {
+            throw new OrderException("Fetch certificate from letsencrypt failed, timed out after {$timeout} seconds.");
         }
 
         list($code, $header, $body) = RequestHelper::get($this->certificate);
