@@ -74,6 +74,23 @@ class ChallengeService
         $this->_credential = $credential;
     }
 
+
+    /**
+     * Clears open / pending challenge
+     * @return boolean
+     */
+    public function clear()
+    {
+        $orderService = Client::$runtime->order;
+
+        if ($orderService->isOrderFinalized() || $orderService->isAllAuthorizationValid() === TRUE)
+        {
+            return TRUE;
+        }
+
+        return $this->_authorication->clearOpenChallenge($this->_type);
+    }
+
     /**
      * Verify
      * @param int $timeout

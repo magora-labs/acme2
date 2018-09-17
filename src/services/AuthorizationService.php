@@ -116,6 +116,35 @@ class AuthorizationService
         return NULL;
     }
 
+
+    /**
+     * Clears open / pending challenge
+     * @param string $type http-01 or dns-01
+     * @return boolean
+     */
+    public function clearOpenChallenge($type)
+    {
+        $challenge = $this->getChallenge($type);
+
+        if ($this->status != 'pending' || $challenge['status'] != 'pending')
+        {
+            return TRUE;
+        }
+
+        $keyAuthorization = $challenge['token'].'.'.OpenSSLHelper::generateThumbprint();
+
+        $jwk = OpenSSLHelper::generateJWSOfKid(
+            $challenge['url'],
+            Client::$runtime->account->getAccountUrl(),
+            ['keyAuthorization' => $keyAuthorization]
+        );
+
+        list($code, $header, $body) = RequestHelper::post($challenge['url'], $jwk);
+
+        return true;
+    }
+
+
     /**
      * Make letsencrypt to verify
      * @param string $type
