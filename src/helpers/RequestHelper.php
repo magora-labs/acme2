@@ -113,8 +113,8 @@ class RequestHelper
     public static function getHandler($url, $requestType, $data)
     {
         $header = [
-            'Accept: application/jose+json',
-            'Content-Type: application/jose+json',
+            'Accept: ' . (isset(Client::$runtime->params['acceptHeader']) ? Client::$runtime->params['acceptHeader'] : 'application/jose+json'),
+            'Content-Type: ' . (isset(Client::$runtime->params['contentTypeHeader']) ? Client::$runtime->params['contentTypeHeader'] : 'application/jose+json'),
             'User-Agent: '.Client::$runtime->params['software'].'/'.Client::$runtime->params['version'],
         ];
 
