@@ -88,7 +88,7 @@ class RequestHelper
         $body = trim(substr($response, $info['header_size']));
 
         /* Get replay nonce from this request's header */
-        if ($nonce = CommonHelper::getNonceFromResponseHeader($header))
+        if ($nonce = CommonHelper::getNonceFromResponseHeader($header) && !is_null(Client::$runtime->nonce))
         {
             Client::$runtime->nonce->set($nonce);
         }
@@ -113,7 +113,7 @@ class RequestHelper
     public static function getHandler($url, $requestType, $data)
     {
         $header = [
-            'Accept: ' . (isset(Client::$runtime->params['acceptHeader']) ? Client::$runtime->params['acceptHeader'] : 'application/jose+json'),
+            'Accept: ' . (isset(Client::$runtime->params['acceptHeader']) ? Client::$runtime->params['acceptHeader'] : 'application/jose+json, application/json'),
             'Content-Type: ' . (isset(Client::$runtime->params['contentTypeHeader']) ? Client::$runtime->params['contentTypeHeader'] : 'application/jose+json'),
             'User-Agent: '.Client::$runtime->params['software'].'/'.Client::$runtime->params['version'],
         ];
