@@ -88,9 +88,11 @@ class RequestHelper
         $body = trim(substr($response, $info['header_size']));
 
         /* Get replay nonce from this request's header */
-        if ($nonce = CommonHelper::getNonceFromResponseHeader($header) && !is_null(Client::$runtime->nonce))
+        if ($nonce = CommonHelper::getNonceFromResponseHeader($header))
         {
-            Client::$runtime->nonce->set($nonce);
+            if (!is_null(Client::$runtime->nonce)) {
+                Client::$runtime->nonce->set($nonce);
+            }
         }
 
         $bodyDecoded = json_decode(trim($body), TRUE);
