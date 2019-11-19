@@ -244,9 +244,7 @@ class OrderService
         }
 
         $payload = [
-            'identifiers' => $identifierList,
-            'notBefore' => '',
-            'notAfter' => '',
+            'identifiers' => $identifierList
         ];
 
         $jws = OpenSSLHelper::generateJWSOfKid(
